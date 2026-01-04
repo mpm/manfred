@@ -1,0 +1,11 @@
+# MANFRED Development Configuration
+# Use with: ./bin/manfred --config dev/config/manfred.yaml
+
+data_dir: ./dev
+
+projects_dir: ./dev/projects
+jobs_dir: ./jobs
+tickets_dir: ./dev/tickets
+
+credentials:
+  claude_credentials_file: ./dev/config/.credentials.json

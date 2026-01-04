@@ -1,0 +1,8 @@
+services:
+  app:
+    build: .
+    volumes:
+      - .:/app
+    environment:
+      - ANTHROPIC_API_KEY
+    working_dir: /app

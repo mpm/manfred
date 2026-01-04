@@ -1,0 +1,1 @@
+Add a new function called "farewell" to hello.rb that takes a name parameter and returns "Goodbye, {name}!". Then update the main function to call farewell after greet.

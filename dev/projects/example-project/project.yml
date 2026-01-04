@@ -1,0 +1,29 @@
+# Example Project Configuration
+name: example-project
+
+# Git repository URL for cloning
+# When set, MANFRED will:
+#   1. Clone this repo into the job's workspace
+#   2. Create a feature branch (manfred/<job-id>)
+#   3. Let Claude work and commit to that branch
+#
+# Leave commented to use legacy mode (code in repository/ subdirectory)
+# repo: git@github.com:you/example-project.git
+
+# Default branch for merge operations (future use)
+default_branch: main
+
+# Docker settings
+docker:
+  # Docker compose file relative to repository/ (legacy mode)
+  # When using git clone mode, this is still used from the cloned repo
+  compose_file: docker-compose.yml
+  # Service name where Claude Code runs
+  main_service: app
+  # Working directory inside the container
+  # Note: When using git clone, workdir becomes /manfred-job/workspace automatically
+  workdir: /app
+
+# Optional: Claude Code settings
+# claude:
+#   model: claude-sonnet-4-20250514

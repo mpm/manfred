@@ -1,15 +1,15 @@
-# MANFRED - Agent Runner
+# MANFRED - **M**ultiple **A**gent **N**odes **F**reeing **R**esources from **E**ngineering **D**istraction
 
-MANFRED is a CLI tool that runs Claude Code against projects in isolated Docker containers.
+> ⚠️ **Early Development** — Barely usable; will likely break if your setup differs from mine.
 
-## Overview
+MANFRED runs Claude Code in isolated Docker containers, letting you:
 
-MANFRED automates coding tasks by:
-1. Reading a prompt (from file or ticket system)
-2. Starting the project's Docker containers
-3. Running Claude Code inside the container with the prompt
-4. Collecting a commit message summarizing the changes
-5. (Future) Creating a git commit and opening a PR
+- Grant full agent permissions safely (sandboxed)
+- Work multiple branches in parallel (each containerized)
+- Trigger runs via GitHub issues or prompt files
+- Get auto-generated commits *(PRs coming soon)*
+
+**Setup:** Just Docker + the `manfred` binary.
 
 ## Installation
 
@@ -160,6 +160,18 @@ See [CLAUDE.md](CLAUDE.md) for detailed architecture documentation.
 
 - Docker with Compose v2
 - Go 1.22+ (for building from source)
+
+## Origin of the name
+
+Named after Manfred Macx from Charles Stross's *Accelerando*, who distributed
+his consciousness into a flock of doves to parallelize his existence—only to
+find the fragmented attention overwhelming.
+
+I found myself in a similar situation: juggling multiple coding agent sessions,
+trapped in constant context switching.
+
+MANFRED decouples you from this interaction. Dump a batch of implementation
+tickets whenever convenient, then review the results when you're ready.
 
 ## License
 

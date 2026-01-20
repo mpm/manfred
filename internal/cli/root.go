@@ -43,6 +43,7 @@ and collects results including commit messages and code changes.`,
 	rootCmd.AddCommand(newTicketCmd())
 	rootCmd.AddCommand(newProjectCmd())
 	rootCmd.AddCommand(newServeCmd())
+	rootCmd.AddCommand(newSessionCmd())
 
 	cobra.OnInitialize(initConfig)
 }

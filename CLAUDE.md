@@ -51,12 +51,20 @@ manfred/
 │   │   ├── root.go              # Cobra CLI dispatcher
 │   │   ├── job.go               # 'job' command
 │   │   ├── ticket.go            # 'ticket' subcommands
+│   │   ├── session.go           # 'session' subcommands (GitHub sessions)
 │   │   ├── project.go           # 'project' subcommands
 │   │   └── serve.go             # 'serve' command (web server, future)
 │   ├── config/
 │   │   └── config.go            # Configuration loading (viper)
 │   ├── docker/
 │   │   └── client.go            # Docker SDK wrapper
+│   ├── store/
+│   │   ├── sqlite.go            # SQLite connection manager (WAL mode)
+│   │   └── migrations.go        # Schema migrations
+│   ├── session/
+│   │   ├── phase.go             # Phase enum and state machine
+│   │   ├── session.go           # Session model for GitHub workflows
+│   │   └── store.go             # SQLiteStore implementation
 │   ├── job/
 │   │   ├── job.go               # Job model
 │   │   ├── runner.go            # Job execution orchestration
@@ -99,12 +107,18 @@ manfred project init <name> --repo <git-url>  # Clone repo, generate project.yml
 manfred project list                          # List all projects
 manfred project show <name>                   # Show project config
 
-# Ticket management
+# Ticket management (CLI-driven workflows)
 manfred ticket new <project> [prompt]         # Create ticket (or read stdin)
 manfred ticket list <project> [--status X]    # List tickets
 manfred ticket show <project> <ticket-id>     # Show ticket details
 manfred ticket stats [project]                # Count by status
 manfred ticket process <project> [ticket-id]  # Process next/specific ticket
+
+# Session management (GitHub-driven workflows)
+manfred session list [--repo X] [--phase X] [--active]  # List sessions
+manfred session show <session-id> [--events]            # Show session details
+manfred session delete <session-id>                     # Delete a session
+manfred session stats                                   # Count by phase
 
 # Utilities
 manfred version
@@ -168,6 +182,9 @@ projects_dir: ~/.manfred/projects
 jobs_dir: ~/.manfred/jobs
 tickets_dir: ~/.manfred/tickets
 
+database:
+  path: ~/.manfred/manfred.db    # SQLite database for sessions
+
 credentials:
   anthropic_api_key: ${ANTHROPIC_API_KEY}
   claude_credentials_file: ~/.manfred/config/.credentials.json
@@ -187,6 +204,7 @@ logging:
 - `MANFRED_PROJECTS_DIR` - Projects directory
 - `MANFRED_JOBS_DIR` - Jobs directory
 - `MANFRED_TICKETS_DIR` - Tickets directory
+- `MANFRED_DATABASE_PATH` - SQLite database path
 
 **Claude Credentials:**
 
@@ -249,13 +267,39 @@ make release
 
 8. **Viper configuration**: Unified config from files, environment, and flags.
 
+## Session System (GitHub Integration)
+
+Sessions track GitHub-triggered workflows with a phase-based state machine:
+
+```
+planning → awaiting_approval → implementing → in_review ⟷ revising → completed
+    ↓             ↓                ↓              ↓           ↓
+  error ←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←┘
+```
+
+**Session model** (`internal/session/session.go`):
+- `ID`: `{owner}-{repo}-issue-{number}`
+- `Phase`: Current workflow state
+- `Branch`: `claude/issue-{number}`
+- `PlanContent`: Claude's implementation plan
+- `PRNumber`: Set after PR creation
+
+**SQLite tables** (`internal/store/migrations.go`):
+- `sessions`: Session state and metadata
+- `session_events`: Audit log (phase changes, comments, errors)
+- `schema_migrations`: Migration tracking
+
+Sessions are separate from tickets. Tickets are for CLI-driven workflows (YAML files);
+sessions are for GitHub-driven workflows (SQLite).
+
 ## What's NOT Implemented Yet
 
 - Web server with admin UI (`manfred serve`)
 - Git push and PR creation
-- GitHub ticket provider (read issues as tickets)
-- Job queue / background processing
-- SQLite persistence for job state
+- GitHub webhook server and event routing
+- GitHub API client (issues, comments, PRs)
+- Prompt builder for phase-specific prompts
+- Session orchestrator connecting phases to job runner
 
 ## Release Process
 
@@ -293,4 +337,10 @@ manfred job my-project prompt.txt
 - Docker with Compose v2
 
 **Build:**
-- Go >= 1.22
+- Go >= 1.24
+
+**Key Go dependencies:**
+- `github.com/spf13/cobra` - CLI framework
+- `github.com/spf13/viper` - Configuration
+- `github.com/docker/docker` - Docker SDK
+- `modernc.org/sqlite` - Pure Go SQLite (no CGO)

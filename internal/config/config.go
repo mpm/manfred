@@ -16,10 +16,16 @@ type Config struct {
 	JobsDir     string `mapstructure:"jobs_dir"`
 	TicketsDir  string `mapstructure:"tickets_dir"`
 
+	Database    DatabaseConfig    `mapstructure:"database"`
 	Credentials CredentialsConfig `mapstructure:"credentials"`
 	Claude      ClaudeConfig      `mapstructure:"claude"`
 	Server      ServerConfig      `mapstructure:"server"`
 	Logging     LoggingConfig     `mapstructure:"logging"`
+}
+
+// DatabaseConfig holds database settings.
+type DatabaseConfig struct {
+	Path string `mapstructure:"path"` // Path to SQLite database file
 }
 
 // ClaudeConfig holds Claude Code related settings.
@@ -101,6 +107,9 @@ func Load() (*Config, error) {
 	if cfg.Claude.BundlePath == "" {
 		cfg.Claude.BundlePath = filepath.Join(cfg.DataDir, "claude-bundle")
 	}
+	if cfg.Database.Path == "" {
+		cfg.Database.Path = filepath.Join(cfg.DataDir, "manfred.db")
+	}
 
 	// Override with environment variables
 	if key := os.Getenv("ANTHROPIC_API_KEY"); key != "" {
@@ -117,6 +126,9 @@ func Load() (*Config, error) {
 	}
 	if dir := os.Getenv("MANFRED_TICKETS_DIR"); dir != "" {
 		cfg.TicketsDir = dir
+	}
+	if path := os.Getenv("MANFRED_DATABASE_PATH"); path != "" {
+		cfg.Database.Path = path
 	}
 
 	return cfg, nil

@@ -305,7 +305,7 @@ No background job framework initially - simple loop with SQLite polling.
 
 ## Implementation Phases
 
-### Phase 1: CLI POC ✅ (Current)
+### Phase 1: CLI POC ✅
 
 - [x] CLI with `job` command
 - [x] Docker compose execution
@@ -315,32 +315,34 @@ No background job framework initially - simple loop with SQLite polling.
 - [x] Prefixed logging
 - [x] Dummy finalize
 
-### Phase 2: Git Integration
+### Phase 2: Go Port ✅
 
-- [ ] Git clone/pull operations
-- [ ] Branch creation
-- [ ] Commit and push
-- [ ] Basic PR creation via `gh` CLI
+- [x] Full rewrite in Go (single binary)
+- [x] Ticket system (YAML-based)
+- [x] Project management CLI
+- [x] Viper configuration
 
-### Phase 3: GitHub Webhooks
+### Phase 3: Session Store ✅
 
-- [ ] Webhook server
-- [ ] Issue event handling
-- [ ] PR commenting
-- [ ] Label management
+- [x] SQLite database with migrations
+- [x] Session model for GitHub workflows
+- [x] Phase state machine (planning → implementing → review → completed)
+- [x] Session CLI commands (list, show, delete, stats)
 
-### Phase 4: Job Queue
+### Phase 4: GitHub Integration (In Progress)
 
-- [ ] SQLite schema
-- [ ] Job persistence
-- [ ] Background worker
-- [ ] Retry logic
+See `docs/github-integration-plan.md` for detailed breakdown:
+- [ ] GitHub API client (issues, comments, PRs)
+- [ ] Webhook server and event routing
+- [ ] Prompt builder for phase-specific prompts
+- [ ] Session orchestrator
 
-### Phase 5: Multi-project
+### Phase 5: Production Readiness
 
-- [ ] Project registration CLI
-- [ ] Parallel job execution
-- [ ] Resource limits
+- [ ] Git push and PR creation
+- [ ] Error handling and retries
+- [ ] Session cleanup (idle, merged)
+- [ ] Multi-project parallel execution
 
 ## Design Considerations
 

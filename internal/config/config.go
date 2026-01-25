@@ -19,6 +19,7 @@ type Config struct {
 	Database    DatabaseConfig    `mapstructure:"database"`
 	Credentials CredentialsConfig `mapstructure:"credentials"`
 	Claude      ClaudeConfig      `mapstructure:"claude"`
+	GitHub      GitHubConfig      `mapstructure:"github"`
 	Server      ServerConfig      `mapstructure:"server"`
 	Logging     LoggingConfig     `mapstructure:"logging"`
 }
@@ -49,6 +50,13 @@ type ServerConfig struct {
 type LoggingConfig struct {
 	Level  string `mapstructure:"level"`
 	Format string `mapstructure:"format"`
+}
+
+// GitHubConfig holds GitHub integration settings.
+type GitHubConfig struct {
+	Token           string `mapstructure:"token"`             // Personal Access Token
+	WebhookSecret   string `mapstructure:"webhook_secret"`    // Webhook signature secret
+	RateLimitBuffer int    `mapstructure:"rate_limit_buffer"` // Stop when this many requests remain
 }
 
 // ProjectConfig holds per-project configuration from project.yml.
@@ -129,6 +137,17 @@ func Load() (*Config, error) {
 	}
 	if path := os.Getenv("MANFRED_DATABASE_PATH"); path != "" {
 		cfg.Database.Path = path
+	}
+
+	// GitHub configuration from environment
+	if token := os.Getenv("GITHUB_TOKEN"); token != "" {
+		cfg.GitHub.Token = token
+	}
+	if secret := os.Getenv("MANFRED_WEBHOOK_SECRET"); secret != "" {
+		cfg.GitHub.WebhookSecret = secret
+	}
+	if cfg.GitHub.RateLimitBuffer == 0 {
+		cfg.GitHub.RateLimitBuffer = 100
 	}
 
 	return cfg, nil

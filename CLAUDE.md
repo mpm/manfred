@@ -52,6 +52,7 @@ manfred/
 │   │   ├── job.go               # 'job' command
 │   │   ├── ticket.go            # 'ticket' subcommands
 │   │   ├── session.go           # 'session' subcommands (GitHub sessions)
+│   │   ├── github.go            # 'github' subcommands (test-auth, webhook-url)
 │   │   ├── project.go           # 'project' subcommands
 │   │   └── serve.go             # 'serve' command (web server, future)
 │   ├── config/
@@ -65,6 +66,13 @@ manfred/
 │   │   ├── phase.go             # Phase enum and state machine
 │   │   ├── session.go           # Session model for GitHub workflows
 │   │   └── store.go             # SQLiteStore implementation
+│   ├── github/
+│   │   ├── client.go            # GitHub API client (HTTP, auth, rate limiting)
+│   │   ├── types.go             # API types (Issue, Comment, PullRequest, etc.)
+│   │   ├── issues.go            # Issue operations
+│   │   ├── pulls.go             # Pull request operations
+│   │   ├── comments.go          # Comment formatting/parsing helpers
+│   │   └── webhooks.go          # Webhook signature validation, event parsing
 │   ├── job/
 │   │   ├── job.go               # Job model
 │   │   ├── runner.go            # Job execution orchestration
@@ -119,6 +127,10 @@ manfred session list [--repo X] [--phase X] [--active]  # List sessions
 manfred session show <session-id> [--events]            # Show session details
 manfred session delete <session-id>                     # Delete a session
 manfred session stats                                   # Count by phase
+
+# GitHub integration
+manfred github test-auth                                # Verify GitHub credentials
+manfred github webhook-url                              # Print webhook URL for setup
 
 # Utilities
 manfred version
@@ -189,6 +201,11 @@ credentials:
   anthropic_api_key: ${ANTHROPIC_API_KEY}
   claude_credentials_file: ~/.manfred/config/.credentials.json
 
+github:
+  token: ${GITHUB_TOKEN}         # Personal Access Token
+  webhook_secret: ""             # Webhook signature secret
+  rate_limit_buffer: 100         # Stop when this many requests remain
+
 server:
   addr: 127.0.0.1
   port: 8080
@@ -200,6 +217,8 @@ logging:
 
 **Environment variables:**
 - `ANTHROPIC_API_KEY` - Anthropic API key
+- `GITHUB_TOKEN` - GitHub Personal Access Token
+- `MANFRED_WEBHOOK_SECRET` - GitHub webhook signature secret
 - `MANFRED_DATA_DIR` - Base data directory
 - `MANFRED_PROJECTS_DIR` - Projects directory
 - `MANFRED_JOBS_DIR` - Jobs directory
@@ -292,14 +311,62 @@ planning → awaiting_approval → implementing → in_review ⟷ revising → c
 Sessions are separate from tickets. Tickets are for CLI-driven workflows (YAML files);
 sessions are for GitHub-driven workflows (SQLite).
 
+## GitHub Client (`internal/github/`)
+
+HTTP client for GitHub API with PAT authentication and rate limiting.
+
+**Key types** (`types.go`):
+- `Issue`, `Comment`, `ReviewComment`, `PullRequest`, `User`, `Label`
+
+**Client operations:**
+```go
+client := github.NewClient(token, github.WithRateLimitBuffer(100))
+
+// Issues
+issue, _ := client.GetIssue(ctx, "owner", "repo", 42)
+comments, _ := client.GetIssueComments(ctx, "owner", "repo", 42)
+client.AddIssueComment(ctx, "owner", "repo", 42, "Comment body")
+client.AddLabel(ctx, "owner", "repo", 42, "claude")
+
+// Pull Requests
+pr, _ := client.CreatePullRequest(ctx, "owner", "repo", &github.CreatePullRequestInput{
+    Title: "PR title", Body: "PR body", Head: "feature-branch", Base: "main",
+})
+client.GetPRReviewComments(ctx, "owner", "repo", 1)
+```
+
+**Comment helpers** (`comments.go`):
+```go
+// Format comments with session metadata
+body := github.FormatPlanComment("session-id", "Implementation plan...")
+
+// Parse Manfred comments
+meta := github.ParseManfredComment(body) // Returns *ManfredMeta{SessionID, Phase}
+
+// Detect approvals/retries
+github.IsApproval("@claude approved")  // true
+github.IsRetryRequest("@claude retry") // true
+```
+
+**Webhook validation** (`webhooks.go`):
+```go
+// Validate signature (X-Hub-Signature-256 header)
+err := github.ValidateWebhookSignature(payload, signature, secret)
+
+// Parse events
+event, _ := github.ParseWebhookEvent("issues", payload)
+issueEvent, _ := event.AsIssueEvent()
+```
+
 ## What's NOT Implemented Yet
 
 - Web server with admin UI (`manfred serve`)
 - Git push and PR creation
-- GitHub webhook server and event routing
-- GitHub API client (issues, comments, PRs)
-- Prompt builder for phase-specific prompts
-- Session orchestrator connecting phases to job runner
+- GitHub webhook server and event routing (Phase 3)
+- Prompt builder for phase-specific prompts (Phase 4)
+- Session orchestrator connecting phases to job runner (Phase 4)
+
+See `docs/github-integration-plan.md` for the full implementation roadmap.
 
 ## Release Process
 

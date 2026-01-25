@@ -44,6 +44,7 @@ and collects results including commit messages and code changes.`,
 	rootCmd.AddCommand(newProjectCmd())
 	rootCmd.AddCommand(newServeCmd())
 	rootCmd.AddCommand(newSessionCmd())
+	rootCmd.AddCommand(newGitHubCmd())
 
 	cobra.OnInitialize(initConfig)
 }

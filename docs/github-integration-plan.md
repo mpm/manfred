@@ -116,13 +116,13 @@ func (s *Session) TransitionTo(target Phase) error
 ```
 
 ### Deliverables
-- [ ] SQLite connection manager with WAL mode
-- [ ] Schema migrations (up/down)
-- [ ] Session model with validation
-- [ ] SessionStore implementation
-- [ ] Phase state machine with validation
-- [ ] Unit tests for store and state machine
-- [ ] CLI: `manfred session list`, `manfred session show <id>`
+- [x] SQLite connection manager with WAL mode
+- [x] Schema migrations (up/down)
+- [x] Session model with validation
+- [x] SessionStore implementation
+- [x] Phase state machine with validation
+- [x] Unit tests for store and state machine
+- [x] CLI: `manfred session list`, `manfred session show <id>`
 
 ### Migration Path
 - Existing ticket system continues to work unchanged
@@ -205,13 +205,13 @@ github:
 ```
 
 ### Deliverables
-- [ ] GitHub client with PAT authentication
-- [ ] Issue/comment/PR operations
-- [ ] Webhook signature validation (HMAC SHA-256)
-- [ ] Rate limit handling with backoff
-- [ ] Comment formatting/parsing helpers
-- [ ] Unit tests with mock responses
-- [ ] CLI: `manfred github test-auth` (verify credentials)
+- [x] GitHub client with PAT authentication
+- [x] Issue/comment/PR operations
+- [x] Webhook signature validation (HMAC SHA-256)
+- [x] Rate limit handling with backoff
+- [x] Comment formatting/parsing helpers
+- [x] Unit tests with mock responses
+- [x] CLI: `manfred github test-auth` (verify credentials)
 
 ---
 
